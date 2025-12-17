@@ -2,23 +2,32 @@ package DbConnection;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet; // ResultSet'i import etmeyi unutmayalım
 import java.sql.SQLException;
 import java.sql.Statement;
 
 public class DbConnection {
     
     // -------------------------------------------------------------
-    // H2 Embedded DB Bağlantı Bilgileri (Sıfır Kurulum Gerekir)
+    // H2 Embedded DB Bağlantı Bilgileri (KURULUMSUZ ÇÖZÜM)
     // -------------------------------------------------------------
-    // Bu URL, uygulamanın çalıştığı dizinde 'rentacar_db.mv.db' adında bir dosya oluşturur/bağlanır.
     private static final String DB_URL = "jdbc:h2:./rentacar_db"; 
-    private static final String USER = "sa"; // H2 varsayılan kullanıcısı
-    private static final String PASS = ""; // H2 varsayılan şifresi (boş)
+    private static final String USER = "sa"; 
+    private static final String PASS = ""; 
     // -------------------------------------------------------------
 
     public static Connection getConnection() throws SQLException {
-        // H2, JDBC sürücüsünü otomatik olarak bulur.
         return DriverManager.getConnection(DB_URL, USER, PASS);
+    }
+    
+    // Veri olup olmadığını kontrol eden güvenli yardımcı metot
+    private static boolean isTableEmpty(Statement stmt, String tableName) throws SQLException {
+        try (ResultSet rs = stmt.executeQuery("SELECT count(*) FROM " + tableName)) {
+            if (rs.next()) {
+                return rs.getInt(1) == 0;
+            }
+            return true;
+        }
     }
     
     public static void initializeDatabase() {
@@ -33,7 +42,6 @@ public class DbConnection {
             
             // 1. Tabloları oluştur (H2 uyumlu SQL)
             
-            // ARACLAR Tablosu
             String createAraclar = "CREATE TABLE IF NOT EXISTS ARACLAR ("
                                  + "plaka VARCHAR(20) PRIMARY KEY, "
                                  + "marka VARCHAR(50) NOT NULL, "
@@ -42,7 +50,6 @@ public class DbConnection {
                                  + "kiradaMi BOOLEAN NOT NULL DEFAULT FALSE)";
             stmt.execute(createAraclar);
             
-            // MUSTERILER Tablosu (H2'de AUTO_INCREMENT için IDENTITY kullanılır)
             String createMusteriler = "CREATE TABLE IF NOT EXISTS MUSTERILER ("
                                     + "musteriId INT PRIMARY KEY AUTO_INCREMENT, "
                                     + "ad VARCHAR(50) NOT NULL, "
@@ -50,14 +57,12 @@ public class DbConnection {
                                     + "telefon VARCHAR(20))";
             stmt.execute(createMusteriler);
 
-            // KULLANICILAR Tablosu
             String createKullanicilar = "CREATE TABLE IF NOT EXISTS KULLANICILAR ("
                                       + "kullaniciAdi VARCHAR(50) PRIMARY KEY, "
                                       + "sifre VARCHAR(50) NOT NULL, "
                                       + "rol VARCHAR(20) NOT NULL)";
             stmt.execute(createKullanicilar);
             
-            // KIRALAMALAR Tablosu
             String createKiralamalar = "CREATE TABLE IF NOT EXISTS KIRALAMALAR ("
                                     + "kiralamaId INT PRIMARY KEY AUTO_INCREMENT, "
                                     + "aracPlaka VARCHAR(20) NOT NULL, "
@@ -73,14 +78,17 @@ public class DbConnection {
             stmt.execute(createKiralamalar);
 
             
-            // 2. Başlangıç verilerini (SEED DATA) ekle (Veri yoksa ekle)
-           if (!stmt.executeQuery("SELECT count(*) FROM KULLANICILAR").next() || stmt.getResultSet().getInt(1) == 0) {
+            // 2. Başlangıç verilerini (SEED DATA) ekle 
+           
+            // KULLANICILAR tablosunda veri yoksa kontrolü (Yardımcı metot kullanıldı)
+            if (isTableEmpty(stmt, "KULLANICILAR")) {
                 stmt.executeUpdate("INSERT INTO KULLANICILAR (kullaniciAdi, sifre, rol) VALUES ('admin', '1234', 'Admin')");
                 stmt.executeUpdate("INSERT INTO KULLANICILAR (kullaniciAdi, sifre, rol) VALUES ('personel1', '5678', 'Personel')");
                 System.out.println("Başlangıç kullanıcıları eklendi.");
             }
-
-            if (!stmt.executeQuery("SELECT count(*) FROM ARACLAR").next() || stmt.getResultSet().getInt(1) == 0) {
+           
+            // ARACLAR tablosunda veri yoksa kontrolü
+            if (isTableEmpty(stmt, "ARACLAR")) {
                 stmt.executeUpdate("INSERT INTO ARACLAR (plaka, marka, model, gunlukUcret, kiradaMi) VALUES ('34ABC11', 'Renault', 'Clio', 450.0, FALSE)");
                 stmt.executeUpdate("INSERT INTO ARACLAR (plaka, marka, model, gunlukUcret, kiradaMi) VALUES ('06XYZ22', 'Fiat', 'Egea', 500.0, FALSE)");
                 stmt.executeUpdate("INSERT INTO ARACLAR (plaka, marka, model, gunlukUcret, kiradaMi) VALUES ('35DFG33', 'Ford', 'Focus', 650.0, FALSE)");
