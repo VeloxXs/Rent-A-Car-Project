@@ -1,18 +1,18 @@
-## Getting Started
+# Rent A Car Project
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+This is an advanced-level Java backend project developed using JDBC and MySQL.
+The project demonstrates a layered architecture and database-driven business logic.
 
-## Folder Structure
+## Database Support
+This project supports multiple databases using Git branches:
+- **MySQL** → `main` branch
+- **H2 (In-Memory Database)** → `h2` branch
 
-The workspace contains two folders by default, where:
+## Technologies
+- Java
+- JDBC
+- MySQL
+- H2 Database
+- DAO Design Pattern
 
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
-
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
-
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
-
-## Dependency Management
-
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+## Project Structure
